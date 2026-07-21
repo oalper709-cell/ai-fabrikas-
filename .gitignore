@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.next/
+.env
+.env.*
+!.env.example
+!.env.production.example
+.env.local
+*.log
+.DS_Store
+*.db
+*.db-journal
+coverage/
+.turbo/
+packages/db/.pgdata/
+apps/web/tsconfig.tsbuildinfo
+.cursor/

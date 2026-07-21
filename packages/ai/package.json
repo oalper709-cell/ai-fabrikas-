@@ -1,0 +1,21 @@
+{
+  "name": "@ai-fabrikasi/ai",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@ai-fabrikasi/db": "*",
+    "@ai-fabrikasi/shared": "*",
+    "@ai-fabrikasi/storage": "*",
+    "openai": "^6.48.0",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

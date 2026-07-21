@@ -1,0 +1,36 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                   String        @id @default(cuid())
+  email                String        @unique
+  passwordHash         String
+  name                 String?
+  plan                 String        @default("FREE")
+  usageCount           Int           @default(0)
+  usageResetAt         DateTime      @default(now())
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+  contentItems         ContentItem[]
+}
+
+model ContentItem {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      String
+  title     String
+  input     String
+  output    String
+  createdAt DateTime @default(now())
+
+  @@index([userId, createdAt])
+}

@@ -1,0 +1,175 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MembershipRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+enum JobStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+enum ModuleType {
+  SOCIAL
+  BLOG
+  AD
+  SEO
+  TRANSLATION
+  THUMBNAIL
+  LOGO
+  EMAIL
+  CV
+}
+
+model Organization {
+  id            String         @id @default(cuid())
+  name          String
+  slug          String         @unique
+  plan          String         @default("FREE")
+  creditBalance Int            @default(10)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  memberships   Membership[]
+  subscriptions Subscription[]
+  creditLedger  CreditLedger[]
+  jobs          GenerationJob[]
+  assets        ContentAsset[]
+  media         MediaObject[]
+  auditLogs     AuditLog[]
+}
+
+model User {
+  id              String         @id @default(cuid())
+  email           String         @unique
+  passwordHash    String
+  name            String?
+  emailVerifiedAt DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  memberships     Membership[]
+  jobs            GenerationJob[]
+  auditLogs       AuditLog[]
+}
+
+model Membership {
+  id        String         @id @default(cuid())
+  orgId     String
+  userId    String
+  role      MembershipRole @default(MEMBER)
+  createdAt DateTime       @default(now())
+  org       Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, userId])
+  @@index([userId])
+}
+
+model Subscription {
+  id               String       @id @default(cuid())
+  orgId            String
+  stripeCustomerId String?
+  stripeSubId      String?
+  status           String       @default("inactive")
+  periodEnd        DateTime?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  org              Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([stripeCustomerId])
+  @@index([orgId])
+}
+
+model CreditLedger {
+  id        String       @id @default(cuid())
+  orgId     String
+  delta     Int
+  reason    String
+  jobId     String?
+  createdAt DateTime     @default(now())
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, createdAt])
+}
+
+model GenerationJob {
+  id        String       @id @default(cuid())
+  orgId     String
+  userId    String
+  module    ModuleType
+  status    JobStatus    @default(QUEUED)
+  inputJson Json
+  error     String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset     ContentAsset?
+
+  @@index([status, createdAt])
+  @@index([orgId, createdAt])
+}
+
+model ContentAsset {
+  id         String        @id @default(cuid())
+  orgId      String
+  jobId      String        @unique
+  module     ModuleType
+  title      String
+  outputJson Json
+  createdAt  DateTime      @default(now())
+  org        Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  job        GenerationJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  media      MediaObject[]
+
+  @@index([orgId, createdAt])
+}
+
+model MediaObject {
+  id         String        @id @default(cuid())
+  orgId      String
+  assetId    String?
+  storageKey String
+  mime       String
+  bytes      Int
+  createdAt  DateTime      @default(now())
+  org        Organization  @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  asset      ContentAsset? @relation(fields: [assetId], references: [id], onDelete: SetNull)
+
+  @@index([orgId])
+}
+
+model PromptTemplate {
+  id           String     @id @default(cuid())
+  module       ModuleType
+  version      Int
+  systemPrompt String
+  isActive     Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+
+  @@unique([module, version])
+}
+
+model AuditLog {
+  id        String        @id @default(cuid())
+  actorId   String?
+  orgId     String?
+  action    String
+  metaJson  Json?
+  createdAt DateTime      @default(now())
+  actor     User?         @relation(fields: [actorId], references: [id], onDelete: SetNull)
+  org       Organization? @relation(fields: [orgId], references: [id], onDelete: SetNull)
+
+  @@index([orgId, createdAt])
+}

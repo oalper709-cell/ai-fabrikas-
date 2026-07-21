@@ -1,0 +1,191 @@
+:root {
+  --bg: #0b0f14;
+  --bg-elevated: #121820;
+  --ink: #e8eef4;
+  --muted: #8b9aab;
+  --line: #243041;
+  --accent: #2ee6a6;
+  --accent-ink: #04150f;
+  --danger: #ff6b6b;
+  --font-display: 'Syne', 'Avenir Next', sans-serif;
+  --font-body: 'Figtree', 'Segoe UI', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+@keyframes af-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes af-sweep {
+  from {
+    transform: translateX(-12%);
+    opacity: 0.35;
+  }
+  to {
+    transform: translateX(12%);
+    opacity: 0.8;
+  }
+}
+
+@keyframes af-pulse-line {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.af-rise {
+  animation: af-rise 700ms ease both;
+}
+
+.af-rise-delay {
+  animation: af-rise 800ms ease 120ms both;
+}
+
+.af-rise-delay-2 {
+  animation: af-rise 900ms ease 220ms both;
+}
+
+.af-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.9rem 1.25rem;
+  border-radius: 999px;
+  border: 0;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 160ms ease, filter 160ms ease;
+}
+
+.af-btn:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+.af-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.9rem 1.25rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.af-btn-ghost:hover {
+  border-color: var(--muted);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.af-input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #070b10;
+  color: var(--ink);
+}
+
+.af-input:focus {
+  outline: 1px solid var(--accent);
+  border-color: var(--accent);
+}
+
+.af-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 240px 1fr;
+}
+
+.af-side {
+  border-right: 1px solid var(--line);
+  background: linear-gradient(180deg, #0e141c 0%, #0b0f14 100%);
+  padding: 1.25rem 1rem 2rem;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: auto;
+}
+
+.af-side a {
+  display: block;
+  padding: 0.55rem 0.75rem;
+  border-radius: 10px;
+  color: var(--muted);
+  text-decoration: none;
+  margin-bottom: 0.2rem;
+}
+
+.af-side a:hover {
+  color: var(--ink);
+  background: rgba(46, 230, 166, 0.08);
+}
+
+.af-main {
+  padding: 1.5rem 1.75rem 3rem;
+}
+
+@media (max-width: 860px) {
+  .af-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .af-side {
+    position: relative;
+    height: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .af-side nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
+  .af-side a {
+    margin: 0;
+  }
+}

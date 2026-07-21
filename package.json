@@ -1,0 +1,30 @@
+{
+  "name": "ai-fabrikasi",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev --workspace=@ai-fabrikasi/api",
+    "dev:web": "npm run dev --workspace=@ai-fabrikasi/web",
+    "dev:worker": "npm run dev --workspace=@ai-fabrikasi/worker",
+    "build": "npm run build --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "smoke": "node scripts/smoke.mjs",
+    "env:bootstrap": "node scripts/bootstrap-env.mjs",
+    "db:generate": "npm run generate --workspace=@ai-fabrikasi/db",
+    "db:migrate": "npm run migrate --workspace=@ai-fabrikasi/db",
+    "db:embedded": "npm run db:embedded --workspace=@ai-fabrikasi/db",
+    "infra:up": "docker compose up -d",
+    "infra:down": "docker compose down",
+    "prod:up": "docker compose -f docker-compose.prod.yml --env-file .env.production up -d --build",
+    "prod:down": "docker compose -f docker-compose.prod.yml --env-file .env.production down",
+    "prod:logs": "docker compose -f docker-compose.prod.yml --env-file .env.production logs -f"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,51 @@
+# syntax=docker/dockerfile:1
+
+FROM node:20-bookworm-slim AS base
+WORKDIR /app
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+FROM base AS deps
+COPY package.json package-lock.json ./
+COPY apps/api/package.json apps/api/
+COPY apps/worker/package.json apps/worker/
+COPY apps/web/package.json apps/web/
+COPY packages/ai/package.json packages/ai/
+COPY packages/db/package.json packages/db/
+COPY packages/shared/package.json packages/shared/
+COPY packages/storage/package.json packages/storage/
+COPY packages/ui/package.json packages/ui/
+COPY packages/config/package.json packages/config/
+RUN npm ci
+
+FROM deps AS build
+COPY . .
+RUN npm run build --workspace=@ai-fabrikasi/shared \
+  && npm run build --workspace=@ai-fabrikasi/storage \
+  && npm run generate --workspace=@ai-fabrikasi/db \
+  && npm run build --workspace=@ai-fabrikasi/db \
+  && npm run build --workspace=@ai-fabrikasi/ai \
+  && npm run build --workspace=@ai-fabrikasi/api \
+  && npm run build --workspace=@ai-fabrikasi/worker
+
+FROM base AS api
+ENV NODE_ENV=production
+COPY --from=build /app /app
+WORKDIR /app/apps/api
+EXPOSE 4000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
+  CMD node -e "fetch('http://127.0.0.1:'+(process.env.PORT||4000)+'/v1/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+CMD ["node", "dist/main.js"]
+
+FROM base AS worker
+ENV NODE_ENV=production
+COPY --from=build /app /app
+WORKDIR /app/apps/worker
+CMD ["node", "dist/main.js"]
+
+FROM base AS migrate
+ENV NODE_ENV=production
+COPY --from=build /app /app
+WORKDIR /app/packages/db
+CMD ["npx", "prisma", "migrate", "deploy"]

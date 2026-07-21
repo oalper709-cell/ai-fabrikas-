@@ -1,0 +1,42 @@
+# syntax=docker/dockerfile:1
+
+FROM node:20-bookworm-slim AS base
+WORKDIR /app
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
+
+FROM base AS deps
+COPY package.json package-lock.json ./
+COPY apps/api/package.json apps/api/
+COPY apps/worker/package.json apps/worker/
+COPY apps/web/package.json apps/web/
+COPY packages/ai/package.json packages/ai/
+COPY packages/db/package.json packages/db/
+COPY packages/shared/package.json packages/shared/
+COPY packages/storage/package.json packages/storage/
+COPY packages/ui/package.json packages/ui/
+COPY packages/config/package.json packages/config/
+RUN npm ci
+
+FROM deps AS build
+COPY . .
+ARG NEXT_PUBLIC_API_URL=http://localhost:4000/v1
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_TELEMETRY_DISABLED=1
+RUN npm run build --workspace=@ai-fabrikasi/shared \
+  && npm run build --workspace=@ai-fabrikasi/web
+
+FROM base AS runner
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
+
+COPY --from=build /app/apps/web/public ./apps/web/public
+COPY --from=build /app/apps/web/.next/standalone ./
+COPY --from=build /app/apps/web/.next/static ./apps/web/.next/static
+
+WORKDIR /app/apps/web
+EXPOSE 3000
+CMD ["node", "server.js"]
