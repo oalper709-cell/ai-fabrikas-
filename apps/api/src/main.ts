@@ -9,7 +9,21 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 import { assertRuntimeConfig } from './common/runtime-config';
 import { initSentry } from './common/sentry';
 
+function sanitizeEnv() {
+  if (process.env.DATABASE_URL) {
+    // Neon pooler + Prisma: channel_binding can break connections
+    process.env.DATABASE_URL = process.env.DATABASE_URL.replace(
+      /([&?])channel_binding=require&?/g,
+      '$1'
+    ).replace(/[?&]$/, '');
+  }
+  if (process.env.REDIS_URL) {
+    process.env.REDIS_URL = process.env.REDIS_URL.replace(/^["']|["']$/g, '');
+  }
+}
+
 async function bootstrap() {
+  sanitizeEnv();
   await initSentry();
 
   const config = assertRuntimeConfig();
@@ -49,9 +63,12 @@ async function bootstrap() {
   });
 
   const port = Number(process.env.PORT) || 4000;
-  await app.listen(port);
-  console.log(`API listening on http://localhost:${port}/v1/health`);
-  console.log(`Readiness: http://localhost:${port}/v1/ready`);
+  await app.listen(port, '0.0.0.0');
+  console.log(`API listening on 0.0.0.0:${port}/v1/health`);
+  console.log(`Readiness: /v1/ready`);
 }
 
-bootstrap();
+bootstrap().catch((err) => {
+  console.error('API bootstrap failed:', err);
+  process.exit(1);
+});
