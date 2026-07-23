@@ -32,5 +32,5 @@ RUN npm run build --workspace=@ai-fabrikasi/shared \
 FROM base AS runner
 ENV NODE_ENV=production
 COPY --from=build /app /app
-WORKDIR /app/apps/worker
-CMD ["node", "dist/main.js"]
+WORKDIR /app
+CMD ["node", "apps/worker/dist/main.js"]
